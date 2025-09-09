@@ -26,17 +26,20 @@ func parseTraining(data string) (int, string, time.Duration, error) {
 	//Activity- переменная хранящая в себе вид активности(бег или ходьба).
 
 	if len(splitData) != 3 {
-		return 0, "", time.Duration(0), fmt.Errorf("Ошибка: недостаточное количество данных")
+		return 0, "", time.Duration(0), fmt.Errorf("недостаточное количество данных")
 	}
 
 	steps, err := strconv.Atoi(splitData[0])
-	if err != nil || steps <= 0 {
-		return 0, "", time.Duration(0), fmt.Errorf("Ошибка: Неправильно задано количество шагов")
+	if err != nil {
+		return 0, "", time.Duration(0), err
+	}
+	if steps <= 0 {
+		return 0, "", time.Duration(0), fmt.Errorf("неправильно задано количество шагов")
 	}
 
 	times, err := time.ParseDuration(splitData[2])
 	if err != nil || times <= 0 {
-		return 0, "", time.Duration(0), fmt.Errorf("Ошибка: Неправильно задано время")
+		return 0, "", time.Duration(0), fmt.Errorf("неправильно задано время")
 	}
 	activity := splitData[1]
 	return steps, activity, times, nil
@@ -88,16 +91,16 @@ func TrainingInfo(data string, weight, height float64) (string, error) {
 
 func RunningSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
 	if duration <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверные данные по времени тренировки")
+		return 0.0, fmt.Errorf("неверные данные по времени тренировки")
 	}
 	if weight <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Нерпавильно задан вес")
+		return 0.0, fmt.Errorf("нерпавильно задан вес")
 	}
 	if height <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверно задан рост")
+		return 0.0, fmt.Errorf("неверно задан рост")
 	}
 	if steps <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверные данные по количеству шагов")
+		return 0.0, fmt.Errorf("неверные данные по количеству шагов")
 	}
 	//AveSpeed - получает данные по средней скорости из функции meanSpeed.
 	speed := meanSpeed(steps, height, duration)
@@ -110,16 +113,16 @@ func RunningSpentCalories(steps int, weight, height float64, duration time.Durat
 
 func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
 	if duration <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверные данные по времени тренировки")
+		return 0.0, fmt.Errorf("неверные данные по времени тренировки")
 	}
 	if weight <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Нерпавильно задан вес")
+		return 0.0, fmt.Errorf("нерпавильно задан вес")
 	}
 	if height <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверно задан рост")
+		return 0.0, fmt.Errorf("неверно задан рост")
 	}
 	if steps <= 0 {
-		return 0.0, fmt.Errorf("Ошибка: Неверные данные по количеству шагов")
+		return 0.0, fmt.Errorf("неверные данные по количеству шагов")
 	}
 	//Speed - получает данные по средней скорости из функции meanSpeed.
 	speed := meanSpeed(steps, height, duration)
