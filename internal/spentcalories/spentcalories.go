@@ -1,6 +1,10 @@
 package spentcalories
 
 import (
+	"fmt"
+	"log"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,25 +18,117 @@ const (
 )
 
 func parseTraining(data string) (int, string, time.Duration, error) {
-	// TODO: реализовать функцию
+	//SplitData переменная хранит в себе отдельные части входных параметров
+	//разделенных запятой.
+	var splitData []string
+	//Разделяем на части входные параметры в месте ",".
+	splitData = strings.Split(data, ",")
+	//Activity- переменная хранящая в себе вид активности(бег или ходьба).
+
+	if len(splitData) != 3 {
+		return 0, "", time.Duration(0), fmt.Errorf("недостаточное количество данных")
+	}
+
+	steps, err := strconv.Atoi(splitData[0])
+	if err != nil {
+		return 0, "", time.Duration(0), err
+	}
+	if steps <= 0 {
+		return 0, "", time.Duration(0), fmt.Errorf("неправильно задано количество шагов")
+	}
+
+	times, err := time.ParseDuration(splitData[2])
+	if err != nil || times <= 0 {
+		return 0, "", time.Duration(0), fmt.Errorf("неправильно задано время")
+	}
+	activity := splitData[1]
+	return steps, activity, times, nil
+
 }
 
 func distance(steps int, height float64) float64 {
-	// TODO: реализовать функцию
+	//StepLenght - переменная хранящая в себе длину шага.
+	stepLenght := float64(stepLengthCoefficient * height)
+	//Возвращаем значение пройденной дистанции в км.
+	return (stepLenght * float64(steps)) / float64(mInKm)
 }
 
 func meanSpeed(steps int, height float64, duration time.Duration) float64 {
-	// TODO: реализовать функцию
+	if duration <= 0 {
+		return 0.0
+	}
+
+	hourss := duration.Hours()
+	//Возвращаем скорость в км в час.
+	return distance(steps, height) / float64(hourss)
+
 }
 
 func TrainingInfo(data string, weight, height float64) (string, error) {
-	// TODO: реализовать функцию
+	steps, activity, duration, err := parseTraining(data)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	walkCalories, err := WalkingSpentCalories(steps, weight, height, duration)
+	runCalories, err := RunningSpentCalories(steps, weight, height, duration)
+	if err != nil {
+		return "", err
+	}
+
+	switch activity {
+	case "Ходьба":
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", activity, duration.Hours(), distance(steps, height), meanSpeed(steps, height, duration), walkCalories), err
+
+	case "Бег":
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", activity, duration.Hours(), distance(steps, height), meanSpeed(steps, height, duration), runCalories), err
+
+	default:
+		return "", fmt.Errorf("неизвестный тип тренировки")
+	}
+
 }
 
 func RunningSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-	// TODO: реализовать функцию
+	if duration <= 0 {
+		return 0.0, fmt.Errorf("неверные данные по времени тренировки")
+	}
+	if weight <= 0 {
+		return 0.0, fmt.Errorf("нерпавильно задан вес")
+	}
+	if height <= 0 {
+		return 0.0, fmt.Errorf("неверно задан рост")
+	}
+	if steps <= 0 {
+		return 0.0, fmt.Errorf("неверные данные по количеству шагов")
+	}
+	//AveSpeed - получает данные по средней скорости из функции meanSpeed.
+	speed := meanSpeed(steps, height, duration)
+	//Minuts - хранит в себе время в минутах путем первода времни из переменной duration.
+	minuts := duration.Minutes()
+	//Callories - вычисляет кол-во затраченных каллорий.
+	callories := (weight * speed * float64(minuts)) / float64(minInH)
+	return callories, nil
 }
 
 func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-	// TODO: реализовать функцию
+	if duration <= 0 {
+		return 0.0, fmt.Errorf("неверные данные по времени тренировки")
+	}
+	if weight <= 0 {
+		return 0.0, fmt.Errorf("нерпавильно задан вес")
+	}
+	if height <= 0 {
+		return 0.0, fmt.Errorf("неверно задан рост")
+	}
+	if steps <= 0 {
+		return 0.0, fmt.Errorf("неверные данные по количеству шагов")
+	}
+	//Speed - получает данные по средней скорости из функции meanSpeed.
+	speed := meanSpeed(steps, height, duration)
+	//Minuts - хранит в себе время в минутах путем первода времни из переменной duration.
+	minuts := duration.Minutes()
+	//Callories - вычисляет кол-во затраченных каллорий.
+	callories := ((weight * speed * float64(minuts)) / float64(minInH)) * walkingCaloriesCoefficient
+	return callories, nil
 }
